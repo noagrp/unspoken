@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unspoken</title>
+    <style>
+        html, body { 
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #000; overflow: hidden; 
+            font-family: 'Georgia', serif; touch-action: none; 
+        }
+        canvas { display: block; position: absolute; top: 0; left: 0; }
+        
+        #header-title {
+            position: fixed; top: 20px; left: 20px;
+            color: #333; font-size: 12px; letter-spacing: 4px;
+            text-transform: uppercase; pointer-events: none; z-index: 10;
+        }
+
+        /* The Typewriter Log with Scroll Interaction */
+        #log-container {
+            position: fixed; bottom: 80px; left: 20px;
+            width: 280px; max-height: 180px;
+            overflow-y: scroll; pointer-events: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px; color: #666; line-height: 1.6;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 20; padding: 10px;
+            border-left: 1px solid #222;
+        }
+
+        /* Minimalist Scrollbar with Tiny Silver Arrows */
+        #log-container::-webkit-scrollbar { width: 14px; }
+        #log-container::-webkit-scrollbar-track { background: #000; }
+        #log-container::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+        #log-container::-webkit-scrollbar-button:single-button {
+            background-color: #111; display: block; height: 14px; width: 14px;
+            background-size: 8px; background-repeat: no-repeat; background-position: center;
+        }
+        #log-container::-webkit-scrollbar-button:vertical:decrement {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='silver'><polygon points='50,20 20,80 80,80'/></svg>");
+        }
+        #log-container::-webkit-scrollbar-button:vertical:increment {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='silver'><polygon points='20,20 80,20 50,80'/></svg>");
+        }
+
+        #chapter-info {
+            position: fixed; top: 20px; right: 20px;
+            color: #333; font-size: 10px; font-family: monospace; z-index: 10;
+        }
+
+        #ui {
+            position: fixed; bottom: 30px; width: 100%; text-align: center;
+            color: #222; font-size: 10px; letter-spacing: 2px;
+            text-transform: uppercase; pointer-events: none; z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-title">Unspoken</div>
+    <div id="chapter-info">Chapter 1/10</div>
+    <div id="log-container"></div>
+    <div id="ui">Move slowly to read the story...</div>
+    <canvas id="canvas"></canvas>
+
+    <!-- Music Player (Hidden) -->
+    <audio id="loveSong" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const logContainer = document.getElementById('log-container');
+const chapterInfo = document.getElementById('chapter-info');
+const loveSong = document.getElementById('loveSong');
+const ui = document.getElementById('ui');
+
+let mouse = { x: -1000, y: -1000, lastMove: Date.now() };
+let isPaused = false;
+
+const confessionSets = [
+["I've been meaning to tell you...", "It's hard to find the right words.", "But when we move like this, I feel brave.", "I notice the way you make things brighter.", "I've written your name in my mind.", "Sometimes I wonder if you feel it too.", "The way the air changes when you walk in.", "It's a quiet kind of magic.", "I think... I'm tired of hiding it.", "The truth is starting to bloom.", "A single spark in the quiet dark."], 
+    ["Do you remember that one Tuesday?", "You laughed at a joke I didn't even tell.", "I realized then that you were special.", "I started looking for you in crowds.", "Everything else felt a bit grey.", "Except for the space where you stood.", "I'm not great at being direct.", "But I'm trying right now.", "Can you feel the pulse of these words?", "Every memory is a step toward you.", "A vintage film playing in my heart."],
+    ["I check my phone just to see your name.", "Even a notification feels like a gift.", "I wonder what you're thinking about.", "Are you thinking about me?", "Probably not, but I can hope.", "Hope is a dangerous, colorful thing.", "It dances just like these letters.", "Fast and frantic and full of light.", "Don't let it go dark just yet.", "I'm reaching out through the screen.", "The digital glow of a thousand wishes."],
+    ["I keep a list of the things you like.", "The way you drink your coffee.", "The songs that make you quiet.", "The way you look when you're focused.", "I've memorized the map of your smile.", "It's my favorite place to get lost.", "Is it weird that I know these things?", "Or is it just that I'm paying attention?", "Stay with me for a little longer.", "I'm learning the language of you.", "A library of unspoken devotions."],
+    ["You are the gravity in my small world.", "Everything pulls back toward you.", "I try to walk away sometimes.", "But I always end up circling back.", "You don't even have to try.", "You just exist, and I am changed.", "The silver light is getting stronger now.", "Can you feel the heat in the movement?", "We’re leaning into the collision.", "I am caught in your gentle orbit.", "A planet finding its sun."],
+    ["What if I say it and everything breaks?", "Silence is safe, but it's lonely.", "I'd rather be honest and scared...", "...than comfortable and invisible.", "Do you see me? Really see me?", "Not just the surface, but the noise.", "The noise of a heart trying to speak.", "It's getting louder every second.", "Keep moving, keep listening.", "The walls are finally coming down.", "A fragile bridge built on honesty."],
+    ["We are like two stars in the same sky.", "Burning bright but so far apart.", "But look at us right now.", "We're connected by this tiny thread.", "By this movement, by this moment.", "I've never felt this close to anyone.", "Without ever saying a single word out loud.", "It's beautiful and terrifying.", "We’re almost overlapping.", "The distance between us is vanishing.", "A constellation of two becoming one."],
+    ["I've stopped trying to look away.", "I've stopped pretending I don't care.", "Every dream I have features you.", "Every song I hear is about you.", "It's a cliché, and I don't even mind.", "Because clichés are just truths...", "...that have been told a thousand times.", "I'm ready to tell my version now.", "Wanna hear it?", "No more masks, no more shadows.", "A symphony played on heartstrings."],
+    ["...in the dark...", "...dancing around the point...", "I can't go back to how it was before.", "Once you read this, everything changes.", "The air is thin up here, isn't it?", "But the view is finally clear.", "I’m breathless and full of you.", "Every word has led to this height.", "Don't look away, just look at me.", "We are standing on the edge of everything.", "A leap of faith into the deep blue."],
+];
+
+let currentSet = 0, currentLevel = 0, levelProgress = 0, particles = [];
+
+// Interaction logic: Pause when using the log
+logContainer.addEventListener('mouseenter', () => { isPaused = true; ui.innerText = "READING HISTORY..."; });
+logContainer.addEventListener('mouseleave', () => { isPaused = false; ui.innerText = "Move slowly to read the story..."; });
+logContainer.addEventListener('touchstart', () => { isPaused = true; });
+
+class Particle {
+    constructor(char, i) {
+        this.char = char;
+        this.x = Math.random() * window.innerWidth;
+        this.y = Math.random() * window.innerHeight;
+        this.vx = 0; this.vy = 0;
+        this.baseSize = window.innerWidth < 600 ? 22 : 28;
+        this.opacity = 0;
+        this.index = i;
+    }
+
+    update(isMoving) {
+        if (isMoving) {
+            let targetX, targetY;
+            if (this.index === 0) {
+                targetX = mouse.x; targetY = mouse.y;
+            } else {
+                const leader = particles[this.index - 1];
+                targetX = leader.x; targetY = leader.y;
+            }
+            this.opacity = Math.min(this.opacity + 0.05, 1);
+            let dx = targetX - this.x;
+            let dy = targetY - this.y;
+            this.vx = dx * 0.22; 
+            this.vy = dy * 0.22;
+        } else {
+            this.vx += (Math.random() - 0.5) * 1.2;
+            this.vy += (Math.random() - 0.5) * 1.2;
+            this.opacity = Math.max(this.opacity - 0.02, 0.05);
+        }
+        this.x += this.vx; this.y += this.vy;
+    }
+
+    draw() {
+        ctx.font = `bold ${this.baseSize}px Georgia`;
+        if (Date.now() - mouse.lastMove < 150) {
+            ctx.fillStyle = `rgba(192, 192, 192, ${this.opacity})`;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = `rgba(255, 255, 255, ${this.opacity * 0.4})`;
+        } else {
+            ctx.fillStyle = `rgba(40, 40, 40, ${this.opacity})`;
+            ctx.shadowBlur = 0;
+        }
+        ctx.fillText(this.char, this.x, this.y);
+    }
+}
+
+function updateLog(text) {
+    const entry = document.createElement('div');
+    entry.style.marginBottom = "8px";
+    entry.innerText = `> ${text}`;
+    logContainer.appendChild(entry);
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
+
+function handleInteraction(x, y) {
+    if (isPaused) return; // Progress pauses when scrolling the log
+    
+    mouse.x = x; mouse.y = y;
+    mouse.lastMove = Date.now();
+    
+    // Slower progress (0.25)
+    levelProgress += 0.25; 
+    if (levelProgress >= 100) {
+        levelProgress = 0;
+        const currentText = confessionSets[currentSet][currentLevel];
+        updateLog(currentText);
+        currentLevel++;
+        
+        if (currentLevel >= 10) {
+            currentLevel = 0;
+            currentSet++;
+            if (currentSet >= 10) {
+                // END OF STORY: Play music and stay on last set
+                loveSong.play().catch(() => { ui.innerText = "Play"; });
+                currentSet = 9;
+            }
+            chapterInfo.innerText = `Chapter ${currentSet + 1}/10`;
+        }
+        createParticles(confessionSets[currentSet][currentLevel]);
+    }
+}
+
+function createParticles(text) {
+    particles = text.split("").map((char, i) => new Particle(char, i));
+}
+
+window.addEventListener('mousemove', (e) => handleInteraction(e.clientX, e.clientY));
+window.addEventListener('touchmove', (e) => {
+    handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+window.addEventListener('click', () => {
+    // Allows audio to play on browsers that block auto-play
+    if (currentSet === 9 && currentLevel === 0) loveSong.play();
+});
+
+function animate() {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const isMoving = Date.now() - mouse.lastMove < 150;
+    particles.forEach(p => { p.update(isMoving); p.draw(); });
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+createParticles(confessionSets[0][0]);
+animate();
+</script>
+</body>
+</html>
