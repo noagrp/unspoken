@@ -48,6 +48,7 @@
         #chapter-info {
             position: fixed; top: 20px; right: 20px;
             color: #333; font-size: 14px; font-family: monospace; z-index: 10;
+            letter-spacing: 1px; text-transform: uppercase;
         }
 
         #ui {
@@ -59,13 +60,13 @@
 </head>
 <body>
     <div id="header-title">Unspoken</div>
-    <div id="chapter-info">Chapter 1/10</div>
+    <div id="chapter-info"></div>
     <div id="log-container"></div>
     <div id="ui">Move slowly to read the story...</div>
     <canvas id="canvas"></canvas>
 
-    <!-- Music Player (Hidden) -->
-    <audio id="loveSong" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+    <!-- Dynamic Audio Player Element -->
+    <audio id="loveSong" loop></audio>
 
 <script>
 const canvas = document.getElementById('canvas');
@@ -78,19 +79,57 @@ const ui = document.getElementById('ui');
 let mouse = { x: -1000, y: -1000, lastMove: Date.now() };
 let isPaused = false;
 
+// Dynamic Audio Tracking Configuration: 
+// Simply map any Title text directly to its song URL. 
+const songTracks = {
+    "A single spark in the quiet dark.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "A vintage film playing in my heart.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "A sea of words, a hope for you.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "A library of unspoken devotions.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    "A planet finding its sun.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    "A fragile bridge built on honesty.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+    "A constellation of two becoming one.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+    "A symphony played on heartstrings.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    "A leap of faith into the deep blue.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+    "The open spaces of forever.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+};
+
 const confessionSets = [
-["I've been meaning to tell you...", "It's hard to find the right words.", "But when we move like this, I feel brave.", "I notice the way you make things brighter.", "I've written your name in my mind.", "Sometimes I wonder if you feel it too.", "The way the air changes when you walk in.", "It's a quiet kind of magic.", "I think... I'm tired of hiding it.", "The truth is starting to bloom.", "A single spark in the quiet dark."], 
+    ["I've been meaning to tell you...", "It's hard to find the right words.", "But when we move like this, I feel brave.", "I notice the way you make things brighter.", "I've written your name in my mind.", "Sometimes I wonder if you feel it too.", "The way the air changes when you walk in.", "It's a quiet kind of magic.", "I think... I'm tired of hiding it.", "The truth is starting to bloom.", "A single spark in the quiet dark."], 
     ["Do you remember that one Tuesday?", "You laughed at a joke I didn't even tell.", "I realized then that you were special.", "I started looking for you in crowds.", "Everything else felt a bit grey.", "Except for the space where you stood.", "I'm not great at being direct.", "But I'm trying right now.", "Can you feel the pulse of these words?", "Every memory is a step toward you.", "A vintage film playing in my heart."],
-    ["I check my phone just to see your name.", "Even a notification feels like a gift.", "I wonder what you're thinking about.", "Are you thinking about me?", "Probably not, but I can hope.", "Hope is a dangerous, colorful thing.", "It dances just like these letters.", "Fast and frantic and full of light.", "Don't let it go dark just yet.", "I'm reaching out through the screen.", "The digital glow of a thousand wishes."],
+    ["I check my phone just to see your name.", "Even a notification feels like a gift.", "I wonder what you're thinking about.", "Are you thinking about me?", "Probably not, but I can hope.", "Hope is a dangerous, colorful thing.", "It dances just like these letters.", "Fast and frantic and full of light.", "Don't let it go dark just yet.", "I'm reaching out...", "A sea of words, drifting toward you."],
     ["I keep a list of the things you like.", "The way you drink your coffee.", "The songs that make you quiet.", "The way you look when you're focused.", "I've memorized the map of your smile.", "It's my favorite place to get lost.", "Is it weird that I know these things?", "Or is it just that I'm paying attention?", "Stay with me for a little longer.", "I'm learning the language of you.", "A library of unspoken devotions."],
-    ["You are the gravity in my small world.", "Everything pulls back toward you.", "I try to walk away sometimes.", "But I always end up circling back.", "You don't even have to try.", "You just exist, and I am changed.", "The silver light is getting stronger now.", "Can you feel the heat in the movement?", "We’re leaning into the collision.", "I am caught in your gentle orbit.", "A planet finding its sun."],
+    ["You are the gravity in my small world.", "Everything pulls back toward you.", "I try to walk away sometimes.", "But I always end up circling back.", "You don't even have to try.", "You just exist, and I am changed.", "The undercurrent is becoming undeniable now.", "Can you feel the heat in the movement?", "We’re leaning into the collision.", "I am caught in your gentle orbit.", "A planet finding its sun."],
     ["What if I say it and everything breaks?", "Silence is safe, but it's lonely.", "I'd rather be honest and scared...", "...than comfortable and invisible.", "Do you see me? Really see me?", "Not just the surface, but the noise.", "The noise of a heart trying to speak.", "It's getting louder every second.", "Keep moving, keep listening.", "The walls are finally coming down.", "A fragile bridge built on honesty."],
     ["We are like two stars in the same sky.", "Burning bright but so far apart.", "But look at us right now.", "We're connected by this tiny thread.", "By this movement, by this moment.", "I've never felt this close to anyone.", "Without ever saying a single word out loud.", "It's beautiful and terrifying.", "We’re almost overlapping.", "The distance between us is vanishing.", "A constellation of two becoming one."],
     ["I've stopped trying to look away.", "I've stopped pretending I don't care.", "Every dream I have features you.", "Every song I hear is about you.", "It's a cliché, and I don't even mind.", "Because clichés are just truths...", "...that have been told a thousand times.", "I'm ready to tell my version now.", "Wanna hear it?", "No more masks, no more shadows.", "A symphony played on heartstrings."],
-    ["...in the dark...", "...dancing around the point...", "I can't go back to how it was before.", "Once you read this, everything changes.", "The air is thin up here, isn't it?", "But the view is finally clear.", "I’m breathless and full of you.", "Every word has led to this height.", "Don't look away, just look at me.", "We are standing on the edge of everything.", "A leap of faith into the deep blue."],
+    ["...in the dark...", "...dancing around the point...", "I can't go back to how it was before.", "Once you read this, everything changes.", "The air is thin up here, isn't it?", "But the view is finally clear.", "I’m breathless and full of you.", "Every word has led to this height.", "Don't look away, just look at me.", "We are standing on the precipice of a brand new sky.", "A leap of faith into the deep blue."]
 ];
 
 let currentSet = 0, currentLevel = 0, levelProgress = 0, particles = [];
+
+// Helper functions to handle dynamic array lengths safely
+function getStatementsCount(setIndex) {
+    // The total statements excluding the last item (which serves as the Title)
+    return confessionSets[setIndex].length - 1;
+}
+
+function getTitle(setIndex) {
+    // The last element of the array is designated as the dynamic Title
+    const set = confessionSets[setIndex];
+    return set[set.length - 1];
+}
+
+function handleAudioPlay(titleText) {
+    if (songTracks[titleText]) {
+        // Only switch sources if it's changing to avoid audio stuttering
+        if (loveSong.src !== songTracks[titleText]) {
+            loveSong.src = songTracks[titleText];
+            loveSong.load();
+        }
+        loveSong.play().catch(() => { ui.innerText = "Move slowly to read the story... // Play"; });
+    }
+}
 
 // Interaction logic: Pause when using the log
 logContainer.addEventListener('mouseenter', () => { isPaused = true; ui.innerText = "READING HISTORY..."; });
@@ -115,7 +154,11 @@ class Particle {
                 targetX = mouse.x; targetY = mouse.y;
             } else {
                 const leader = particles[this.index - 1];
-                targetX = leader.x; targetY = leader.y;
+                if (leader) {
+                    targetX = leader.x; targetY = leader.y;
+                } else {
+                    targetX = mouse.x; targetY = mouse.y;
+                }
             }
             this.opacity = Math.min(this.opacity + 0.05, 1);
             let dx = targetX - this.x;
@@ -152,6 +195,10 @@ function updateLog(text) {
     logContainer.scrollTop = logContainer.scrollHeight;
 }
 
+function updateUI() {
+    chapterInfo.innerText = getTitle(currentSet);
+}
+
 function handleInteraction(x, y) {
     if (isPaused) return; // Progress pauses when scrolling the log
     
@@ -166,21 +213,23 @@ function handleInteraction(x, y) {
         updateLog(currentText);
         currentLevel++;
         
-        if (currentLevel >= 10) {
+        const limit = getStatementsCount(currentSet);
+        if (currentLevel >= limit) {
             currentLevel = 0;
             currentSet++;
-            if (currentSet >= 10) {
-                // END OF STORY: Play music and stay on last set
-                loveSong.play().catch(() => { ui.innerText = "Play"; });
-                currentSet = 9;
+            if (currentSet >= confessionSets.length) {
+                // END OF STORY: lock to the absolute final set
+                currentSet = confessionSets.length - 1;
             }
-            chapterInfo.innerText = `Chapter ${currentSet + 1}/10`;
+            updateUI();
+            handleAudioPlay(getTitle(currentSet));
         }
         createParticles(confessionSets[currentSet][currentLevel]);
     }
 }
 
 function createParticles(text) {
+    if (!text) return;
     particles = text.split("").map((char, i) => new Particle(char, i));
 }
 
@@ -188,9 +237,10 @@ window.addEventListener('mousemove', (e) => handleInteraction(e.clientX, e.clien
 window.addEventListener('touchmove', (e) => {
     handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
+
 window.addEventListener('click', () => {
-    // Allows audio to play on browsers that block auto-play
-    if (currentSet === 9 && currentLevel === 0) loveSong.play();
+    // Fallback allows audio to trigger if browser interaction restrictions block autoplay
+    handleAudioPlay(getTitle(currentSet));
 });
 
 function animate() {
@@ -208,6 +258,10 @@ window.addEventListener('resize', () => {
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
+// Boot up sequence
+updateUI();
+handleAudioPlay(getTitle(currentSet));
 createParticles(confessionSets[0][0]);
 animate();
 </script>
