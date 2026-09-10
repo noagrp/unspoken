@@ -82,29 +82,29 @@ let isPaused = false;
 // Dynamic Audio Tracking Configuration: 
 // Simply map any Title text directly to its song URL. 
 const songTracks = {
-    "A single spark in the quiet dark.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    "A vintage film playing in my heart.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    "A sea of words, a hope for you.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    "A library of unspoken devotions.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    "A planet finding its sun.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-    "A fragile bridge built on honesty.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
-    "A constellation of two becoming one.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
-    "A symphony played on heartstrings.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-    "A leap of faith into the deep blue.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-    "The open spaces of forever.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    "A small spark in the quiet dark.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "An old film still playing in my heart.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "A sea of words drifting toward you.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "A library of things left unspoken.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    "A small world finding its sun.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    "A fragile bridge built from honesty.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+    "Two stars slowly becoming one.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+    "A quiet song played on heartstrings.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    "A small leap into the deep blue.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+    "The open spaces beyond maybe.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
 };
 
 const confessionSets = [
-    ["I've been meaning to tell you something.", "I keep thinking there will be an easier moment.", "There never is.", "So I just keep carrying it around.", "You probably haven't noticed.", "Maybe that's what makes it easier.", "Maybe that's what makes it worse.", "I don't know when this started.", "I only know it didn't stop.", "A single spark in the quiet dark."],
-    ["I remember small things about you.", "Things you probably forgot five minutes later.", "The way you look away when you laugh.", "The way your voice changes when you're tired.", "I don't know why those things stayed with me.", "But they did.", "And somehow the ordinary moments became the ones I replay.", "Nothing happened.", "That might be why I remember everything.", "A vintage film playing in my heart."],
-    ["Sometimes I check my phone hoping it's you.", "I pretend I wasn't waiting.", "I'm getting very good at pretending.", "Your name appears and the whole screen feels different.", "It's ridiculous.", "I know.", "But hope has never cared about dignity.", "So I let myself have a little of it.", "Just enough to wonder.", "A sea of words, a hope for you."],
-    ["I notice more than I should.", "When you're quiet for the wrong reason.", "When you say you're fine too quickly.", "When something is bothering you and you change the subject.", "I never know whether to ask.", "So most of the time, I don't.", "I just stay nearby.", "I hope that counts for something.", "I hope you know I'm paying attention.", "A library of unspoken devotions."],
-    ["I keep finding reasons to be where you are.", "Sometimes I don't even realize I'm doing it.", "Then suddenly there you are.", "And somehow the room feels easier.", "I've tried to explain that to myself.", "I don't have a good explanation.", "You simply matter more than I expected.", "That scares me a little.", "Maybe because I can't switch it off.", "A planet finding its sun."],
-    ["I think about what would happen if I told you.", "Maybe nothing.", "Maybe everything.", "That's the problem.", "Silence keeps things safe.", "But safe is starting to feel very lonely.", "I'm tired of hiding inside almost.", "I'm tired of saying everything except the thing I mean.", "I just don't know if I'm brave enough yet.", "A fragile bridge built on honesty."],
-    ["Sometimes I think you already know.", "Maybe I've been obvious.", "Maybe you're just being kind.", "Maybe I'm imagining all of it.", "I hate how many maybes there are.", "But when we're together, they get quieter.", "The distance feels smaller.", "Not gone.", "Just small enough to notice.", "A constellation of two becoming one."],
-    ["I've stopped trying so hard not to care.", "It was exhausting.", "I cared anyway.", "I still do.", "There are things I want to tell you without making them heavy.", "I don't want to turn this into something frightening.", "I just want to stop hiding from what is already true.", "Even if the truth changes nothing.", "At least it would finally be mine to say.", "A symphony played on heartstrings."],
-    ["I think I'm almost there.", "Not fearless.", "Just tired of running from the same sentence.", "I've carried it through every conversation.", "Every silence.", "Every almost.", "If I say it, something changes.", "If I don't, something changes anyway.", "So maybe this is where I stop pretending I have more time.", "A leap of faith into the deep blue."],
-    ["I kept waiting for the right moment.", "Maybe now.....", "Maybe us......", "Maybe.....", "....you.", "The open spaces of forever."]
+    ["I've been meaning to tell you something.", "I keep thinking there will be an easier moment.", "There never is.", "So I just keep carrying it around.", "You probably haven't noticed.", "Maybe that's what makes it easier.", "Maybe that's what makes it worse.", "I don't know when this started.", "I only know it didn't stop.", "A small spark in the quiet dark."],
+    ["I remember small things about you.", "Things you probably forgot five minutes later.", "The way you look away when you laugh.", "The way your voice changes when you're tired.", "I don't know why those things stayed with me.", "But they did.", "And somehow the ordinary moments became the ones I replay.", "Nothing happened.", "That might be why I remember everything.", "An old film still playing in my heart."],
+    ["Sometimes I check my phone hoping it's you.", "I pretend I wasn't waiting.", "I'm getting very good at pretending.", "Your name appears and the whole screen feels different.", "It's ridiculous.", "I know.", "But hope has never cared about dignity.", "So I let myself have a little of it.", "Just enough to wonder.", "A sea of words drifting toward you."],
+    ["I notice more than I should.", "When you're quiet for the wrong reason.", "When you say you're fine too quickly.", "When something is bothering you and you change the subject.", "I never know whether to ask.", "So most of the time, I don't.", "I just stay nearby.", "I hope that counts for something.", "I hope you know I'm paying attention.", "A library of things left unspoken."],
+    ["I keep finding reasons to be where you are.", "Sometimes I don't even realize I'm doing it.", "Then suddenly there you are.", "And somehow the room feels easier.", "I've tried to explain that to myself.", "I don't have a good explanation.", "You simply matter more than I expected.", "That scares me a little.", "Maybe because I can't switch it off.", "A small world finding its sun."],
+    ["I think about what would happen if I told you.", "Maybe nothing.", "Maybe everything.", "That's the problem.", "Silence keeps things safe.", "But safe is starting to feel very lonely.", "I'm tired of hiding inside almost.", "I'm tired of saying everything except the thing I mean.", "I just don't know if I'm brave enough yet.", "A fragile bridge built from honesty."],
+    ["Sometimes I think you already know.", "Maybe I've been obvious.", "Maybe you're just being kind.", "Maybe I'm imagining all of it.", "I hate how many maybes there are.", "But when we're together, they get quieter.", "The distance feels smaller.", "Not gone.", "Just small enough to notice.", "Two stars slowly becoming one."],
+    ["I've stopped trying so hard not to care.", "It was exhausting.", "I cared anyway.", "I still do.", "There are things I want to tell you without making them heavy.", "I don't want to turn this into something frightening.", "I just want to stop hiding from what is already true.", "Even if the truth changes nothing.", "At least it would finally be mine to say.", "A quiet song played on heartstrings."],
+    ["I think I'm almost there.", "Not fearless.", "Just tired of running from the same sentence.", "I've carried it through every conversation.", "Every silence.", "Every almost.", "If I say it, something changes.", "If I don't, something changes anyway.", "So maybe this is where I stop pretending I have more time.", "A small leap into the deep blue."],
+    ["I kept waiting for the right moment.", "Maybe now.....", "Maybe us......", "Maybe.....", "....you.", "The open spaces beyond maybe."]
 ];
 
 let currentSet = 0, currentLevel = 0, levelProgress = 0, particles = [];
