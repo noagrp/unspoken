@@ -18,7 +18,6 @@
             text-transform: uppercase; pointer-events: none; z-index: 10;
         }
 
-        /* The Typewriter Log with Scroll Interaction */
         #log-container {
             position: fixed; bottom: 80px; left: 20px;
             width: 280px; max-height: 180px;
@@ -30,7 +29,6 @@
             border-left: 1px solid #222;
         }
 
-        /* Minimalist Scrollbar with Tiny Silver Arrows */
         #log-container::-webkit-scrollbar { width: 14px; }
         #log-container::-webkit-scrollbar-track { background: #000; }
         #log-container::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
@@ -56,16 +54,84 @@
             color: #222; font-size: 13px; letter-spacing: 2px;
             text-transform: uppercase; pointer-events: none; z-index: 10;
         }
+
+        #audio-toggle {
+            position: fixed;
+            bottom: 54px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            border: 0;
+            background: transparent;
+            color: #bdbdbd;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            letter-spacing: 4px;
+            padding: 18px 24px 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px rgba(255,255,255,0.35);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #audio-toggle::before,
+        #audio-toggle::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 3px;
+            pointer-events: none;
+            z-index: -1;
+            border-radius: 48% 52% 55% 45% / 62% 58% 42% 38%;
+            transform-origin: 50% 90%;
+        }
+
+        #audio-toggle::before {
+            width: 34px;
+            height: 46px;
+            background: radial-gradient(ellipse at 50% 76%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.42) 28%, rgba(255,255,255,0.12) 55%, transparent 72%);
+            filter: blur(2px);
+            animation: whiteFlame 0.9s ease-in-out infinite alternate;
+        }
+
+        #audio-toggle::after {
+            width: 58px;
+            height: 34px;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.2) 0%, transparent 70%);
+            filter: blur(7px);
+            animation: flameGlow 1.5s ease-in-out infinite alternate;
+        }
+
+        #audio-toggle.playing::before {
+            opacity: 0.38;
+            animation-duration: 1.6s;
+        }
+
+        #audio-toggle.playing::after { opacity: 0.28; }
+
+        #audio-toggle:hover { color: #fff; }
+        #audio-toggle:focus-visible { outline: 1px solid #555; outline-offset: 3px; }
+
+        @keyframes whiteFlame {
+            0% { transform: translateX(-50%) scaleX(0.82) scaleY(0.9) rotate(-3deg); opacity: 0.55; }
+            45% { transform: translateX(-48%) scaleX(1.08) scaleY(1.12) rotate(2deg); opacity: 0.95; }
+            100% { transform: translateX(-52%) scaleX(0.92) scaleY(1.28) rotate(-1deg); opacity: 0.72; }
+        }
+
+        @keyframes flameGlow {
+            from { transform: translateX(-50%) scale(0.85); opacity: 0.22; }
+            to { transform: translateX(-50%) scale(1.18); opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
     <div id="header-title"></div>
     <div id="chapter-info"></div>
     <div id="log-container"></div>
+    <button id="audio-toggle" type="button" aria-label="Play music" aria-pressed="false">Play</button>
     <div id="ui">Move slowly to read the story...</div>
     <canvas id="canvas"></canvas>
 
-    <!-- Dynamic Audio Player Element -->
     <audio id="loveSong" loop></audio>
 
 <script>
@@ -75,12 +141,12 @@ const logContainer = document.getElementById('log-container');
 const chapterInfo = document.getElementById('chapter-info');
 const loveSong = document.getElementById('loveSong');
 const ui = document.getElementById('ui');
+const audioToggle = document.getElementById('audio-toggle');
 
 let mouse = { x: -1000, y: -1000, lastMove: Date.now() };
 let isPaused = false;
+let musicEnabled = false;
 
-// Dynamic Audio Tracking Configuration: 
-// Simply map any Title text directly to its song URL. 
 const songTracks = {
     "A small spark in the quiet dark.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     "An old film still playing in my heart.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
@@ -109,30 +175,54 @@ const confessionSets = [
 
 let currentSet = 0, currentLevel = 0, levelProgress = 0, particles = [];
 
-// Helper functions to handle dynamic array lengths safely
 function getStatementsCount(setIndex) {
-    // The total statements excluding the last item (which serves as the Title)
     return confessionSets[setIndex].length - 1;
 }
 
 function getTitle(setIndex) {
-    // The last element of the array is designated as the dynamic Title
     const set = confessionSets[setIndex];
     return set[set.length - 1];
 }
 
-function handleAudioPlay(titleText) {
-    if (songTracks[titleText]) {
-        // Only switch sources if it's changing to avoid audio stuttering
-        if (loveSong.src !== songTracks[titleText]) {
-            loveSong.src = songTracks[titleText];
-            loveSong.load();
-        }
-        loveSong.play().catch(() => { ui.innerText = "Move slowly to read the story... // Play"; });
+function setTrackForTitle(titleText) {
+    const track = songTracks[titleText];
+    if (!track) return;
+    if (loveSong.src !== track) {
+        loveSong.src = track;
+        loveSong.load();
     }
 }
 
-// Interaction logic: Pause when using the log
+function handleAudioPlay(titleText) {
+    setTrackForTitle(titleText);
+    if (!musicEnabled) return;
+    loveSong.play().catch(() => {
+        musicEnabled = false;
+        updateAudioToggle();
+    });
+}
+
+function updateAudioToggle() {
+    audioToggle.innerText = musicEnabled ? "Pause" : "Play";
+    audioToggle.classList.toggle('playing', musicEnabled);
+    audioToggle.setAttribute('aria-label', musicEnabled ? 'Pause music' : 'Play music');
+    audioToggle.setAttribute('aria-pressed', musicEnabled ? 'true' : 'false');
+}
+
+function toggleAudio(e) {
+    e.stopPropagation();
+    musicEnabled = !musicEnabled;
+    if (musicEnabled) {
+        handleAudioPlay(getTitle(currentSet));
+    } else {
+        loveSong.pause();
+    }
+    updateAudioToggle();
+}
+
+audioToggle.addEventListener('click', toggleAudio);
+audioToggle.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
 logContainer.addEventListener('mouseenter', () => { isPaused = true; ui.innerText = "READING HISTORY..."; });
 logContainer.addEventListener('mouseleave', () => { isPaused = false; ui.innerText = "Move slowly to read the story..."; });
 logContainer.addEventListener('touchstart', () => { isPaused = true; });
@@ -164,7 +254,7 @@ class Particle {
             this.opacity = Math.min(this.opacity + 0.05, 1);
             let dx = targetX - this.x;
             let dy = targetY - this.y;
-            this.vx = dx * 0.22; 
+            this.vx = dx * 0.22;
             this.vy = dy * 0.22;
         } else {
             this.vx += (Math.random() - 0.5) * 1.2;
@@ -201,29 +291,28 @@ function updateUI() {
 }
 
 function handleInteraction(x, y) {
-    if (isPaused) return; // Progress pauses when scrolling the log
-    
+    if (isPaused) return;
+
     mouse.x = x; mouse.y = y;
     mouse.lastMove = Date.now();
-    
-    // Slower progress (0.25)
-    levelProgress += 0.25; 
+
+    levelProgress += 0.25;
     if (levelProgress >= 100) {
         levelProgress = 0;
         const currentText = confessionSets[currentSet][currentLevel];
         updateLog(currentText);
         currentLevel++;
-        
+
         const limit = getStatementsCount(currentSet);
         if (currentLevel >= limit) {
             currentLevel = 0;
             currentSet++;
             if (currentSet >= confessionSets.length) {
-                // END OF STORY: lock to the absolute final set
                 currentSet = confessionSets.length - 1;
             }
             updateUI();
-            handleAudioPlay(getTitle(currentSet));
+            setTrackForTitle(getTitle(currentSet));
+            if (musicEnabled) handleAudioPlay(getTitle(currentSet));
         }
         createParticles(confessionSets[currentSet][currentLevel]);
     }
@@ -238,11 +327,6 @@ window.addEventListener('mousemove', (e) => handleInteraction(e.clientX, e.clien
 window.addEventListener('touchmove', (e) => {
     handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
-
-window.addEventListener('click', () => {
-    // Fallback allows audio to trigger if browser interaction restrictions block autoplay
-    handleAudioPlay(getTitle(currentSet));
-});
 
 function animate() {
     ctx.fillStyle = '#000';
@@ -260,9 +344,9 @@ window.addEventListener('resize', () => {
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Boot up sequence
 updateUI();
-handleAudioPlay(getTitle(currentSet));
+setTrackForTitle(getTitle(currentSet));
+updateAudioToggle();
 createParticles(confessionSets[0][0]);
 animate();
 </script>
