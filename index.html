@@ -21,12 +21,15 @@
         #log-container {
             position: fixed; bottom: 80px; left: 20px;
             width: 280px; max-height: 180px;
-            overflow-y: scroll; pointer-events: auto;
+            overflow-y: auto; pointer-events: auto;
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px; color: #666; line-height: 1.6;
             background: rgba(0, 0, 0, 0.6);
             z-index: 20; padding: 10px;
             border-left: 1px solid #222;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
 
         #log-container::-webkit-scrollbar { width: 14px; }
@@ -146,6 +149,7 @@ const audioToggle = document.getElementById('audio-toggle');
 let mouse = { x: -1000, y: -1000, lastMove: Date.now() };
 let isPaused = false;
 let musicEnabled = false;
+let logResumeTimer = null;
 
 const songTracks = {
     "A small spark in the quiet dark.": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -223,9 +227,29 @@ function toggleAudio(e) {
 audioToggle.addEventListener('click', toggleAudio);
 audioToggle.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
 
-logContainer.addEventListener('mouseenter', () => { isPaused = true; ui.innerText = "READING HISTORY..."; });
-logContainer.addEventListener('mouseleave', () => { isPaused = false; ui.innerText = "Move slowly to read the story..."; });
-logContainer.addEventListener('touchstart', () => { isPaused = true; });
+function pauseForLog() {
+    if (logResumeTimer) {
+        clearTimeout(logResumeTimer);
+        logResumeTimer = null;
+    }
+    isPaused = true;
+    ui.innerText = "READING HISTORY...";
+}
+
+function resumeFromLog() {
+    if (logResumeTimer) clearTimeout(logResumeTimer);
+    logResumeTimer = setTimeout(() => {
+        isPaused = false;
+        ui.innerText = "Move slowly to read the story...";
+        logResumeTimer = null;
+    }, 120);
+}
+
+logContainer.addEventListener('mouseenter', pauseForLog);
+logContainer.addEventListener('mouseleave', resumeFromLog);
+logContainer.addEventListener('touchstart', pauseForLog, { passive: true });
+logContainer.addEventListener('touchend', resumeFromLog, { passive: true });
+logContainer.addEventListener('touchcancel', resumeFromLog, { passive: true });
 
 class Particle {
     constructor(char, i) {
@@ -325,6 +349,8 @@ function createParticles(text) {
 
 window.addEventListener('mousemove', (e) => handleInteraction(e.clientX, e.clientY));
 window.addEventListener('touchmove', (e) => {
+    if (e.target.closest && e.target.closest('#log-container')) return;
+    e.preventDefault();
     handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
 
